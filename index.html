@@ -2,41 +2,50 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pousada Vale do Café • Sistema</title>
+<title>Pousada Vale do Café • Gestão</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter&display=swap" rel="stylesheet">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
 <style>
-body{margin:0;font-family:'Playfair Display',serif;background:#1a120d;color:#f5e6d3}
-.login-screen{
+body{margin:0;font-family:'Inter';background:#1a120d;color:#f5e6d3}
+
+/* LOGIN */
+.login{
 height:100vh;display:flex;align-items:center;justify-content:center;
-background:linear-gradient(rgba(20,10,5,0.85),rgba(20,10,5,0.85)),
+background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
 url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c") center/cover;
 }
+
 .login-box{
-background:rgba(44,27,18,0.95);
-padding:45px;border-radius:16px;width:340px;text-align:center;
+background:#2a1a12;padding:40px;border-radius:12px;width:320px;text-align:center;
 }
-.login-box h1{font-family:'Great Vibes';font-size:38px;color:#d4a373}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none}
-button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;color:white;margin-top:5px}
+
+.login-box h1{font-family:'Great Vibes';color:#d4a373}
+
+/* APP */
 .app{display:none}
 .sidebar{width:240px;background:#2a1a12;height:100vh;position:fixed;padding:20px}
 .main{margin-left:260px;padding:20px}
-.card{background:#362419;padding:15px;border-radius:12px;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.card{
+background:#362419;
+padding:15px;
+border-radius:10px;
+text-align:center;
+}
+
+.card strong{font-size:18px}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="loginScreen" class="login-screen">
+<div id="login" class="login">
 <div class="login-box">
 <h1>Pousada Vale do Café</h1>
 <input id="user" placeholder="Usuário">
@@ -51,106 +60,24 @@ button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;
 <div class="sidebar">
 <button onclick="view('dashboard')">Dashboard</button>
 <button onclick="view('financeiro')">Financeiro</button>
-<button onclick="view('compras')">Compras</button>
-<button onclick="view('funcionarios')">Funcionários</button>
-<button onclick="view('quartos')">Quartos</button>
 </div>
 
 <div class="main">
 
 <h1>Dashboard</h1>
-<div id="dash" class="card"></div>
+
+<div id="cards" class="grid"></div>
+
 <canvas id="grafico"></canvas>
-<button onclick="relatorioPDF()">Relatório PDF</button>
 
-<!-- FINANCEIRO -->
-<div id="financeiro" style="display:none">
-
-<div class="grid">
-
-<div class="card">
-<h3>Despesas Fixas</h3>
-<select id="fixaCategoria">
-<option>Energia</option>
-<option>Internet</option>
-<option>Salários</option>
-<option>Contabilidade</option>
-<option>Impostos</option>
-</select>
-<input id="fixaDesc" placeholder="Descrição">
-<input id="fixaValor" placeholder="Valor">
-<input type="date" id="fixaData">
-<button onclick="addFixa()">Salvar</button>
-</div>
-
-<div class="card">
-<h3>Despesas Variáveis</h3>
-<select id="varCategoria">
-<option>Lavanderia</option>
-<option>Limpeza</option>
-<option>Café da manhã</option>
-<option>Manutenção</option>
-<option>Reposição</option>
-</select>
-<input id="varDesc" placeholder="Descrição">
-<input id="varValor" placeholder="Valor">
-<input type="date" id="varData">
-<button onclick="addVar()">Salvar</button>
-</div>
-
-<div class="card">
-<h3>Investimentos</h3>
-<input id="descInv" placeholder="Descrição">
-<input id="valorInv" placeholder="Valor">
-<button onclick="addInvestimento()">Salvar</button>
-</div>
-
-</div>
-</div>
-
-<!-- COMPRAS -->
-<div id="compras" style="display:none">
-<div class="card">
-<input id="compraDesc" placeholder="Produto">
-<input id="compraValor" placeholder="Valor">
-<button onclick="addCompra()">Salvar</button>
-<button onclick="notaCompra()">Nota PDF</button>
-</div>
-</div>
-
-<!-- FUNCIONARIOS -->
-<div id="funcionarios" style="display:none">
-<div class="card">
-<input id="nomeFunc" placeholder="Nome">
-<input id="funcaoFunc" placeholder="Função">
-<input id="valorFunc" placeholder="Valor">
-<button onclick="addFuncionario()">Salvar</button>
-<button onclick="holerite()">Holerite PDF</button>
-</div>
-</div>
-
-<!-- QUARTOS -->
-<div id="quartos" style="display:none">
-<div class="card">
-<input id="numeroQuarto" placeholder="Número">
-<input id="nomeQuarto" placeholder="Nome">
-<button onclick="addQuarto()">Cadastrar</button>
-</div>
-
-<div class="card">
-<input id="qFrigobar" placeholder="Quarto">
-<input id="itemFrigo" placeholder="Item">
-<input id="valorFrigo" placeholder="Valor">
-<button onclick="addFrigo()">Adicionar</button>
-</div>
-</div>
+<h2>DRE</h2>
+<div id="dre" class="card"></div>
 
 </div>
 </div>
 
 <script>
 
-// SUPABASE
 const supabaseClient = supabase.createClient(
 "https://kvlpqffwschikabkupkd.supabase.co",
 "sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
@@ -158,65 +85,15 @@ const supabaseClient = supabase.createClient(
 
 // LOGIN
 function login(){
-const u=document.getElementById("user").value.trim()
-const p=document.getElementById("pass").value.trim()
-
-if(u==="pousadavlc" && p==="docafe212"){
-loginScreen.style.display="none"
+if(user.value==="pousadavlc" && pass.value==="docafe212"){
+login.style.display="none"
 app.style.display="block"
 render()
-}else{
-alert("Login inválido")
 }
 }
 
 // VIEW
-function view(v){
-["financeiro","compras","funcionarios","quartos"].forEach(x=>{
-document.getElementById(x).style.display="none"
-})
-document.getElementById(v).style.display="block"
-}
-
-// INSERTS
-async function addFixa(){
-await supabaseClient.from('despesas').insert([{
-tipo:"fixa",categoria:fixaCategoria.value,descricao:fixaDesc.value,valor:fixaValor.value,data:fixaData.value
-}])
-render()
-}
-
-async function addVar(){
-await supabaseClient.from('despesas').insert([{
-tipo:"variavel",categoria:varCategoria.value,descricao:varDesc.value,valor:varValor.value,data:varData.value
-}])
-render()
-}
-
-async function addInvestimento(){
-await supabaseClient.from('investimentos').insert([{descricao:descInv.value,valor:valorInv.value}])
-render()
-}
-
-async function addCompra(){
-await supabaseClient.from('compras').insert([{descricao:compraDesc.value,valor:compraValor.value}])
-render()
-}
-
-async function addFuncionario(){
-await supabaseClient.from('funcionarios').insert([{nome:nomeFunc.value,funcao:funcaoFunc.value,valor:valorFunc.value}])
-render()
-}
-
-async function addQuarto(){
-await supabaseClient.from('quartos').insert([{numero:numeroQuarto.value,nome:nomeQuarto.value}])
-render()
-}
-
-async function addFrigo(){
-await supabaseClient.from('frigobar').insert([{quarto:qFrigobar.value,item:itemFrigo.value,valor:valorFrigo.value}])
-render()
-}
+function view(v){}
 
 // DASHBOARD
 let chart;
@@ -237,59 +114,48 @@ let variaveis=despesas.filter(d=>d.tipo==="variavel")
 let totalFixa=fixas.reduce((a,b)=>a+Number(b.valor||0),0)
 let totalVar=variaveis.reduce((a,b)=>a+Number(b.valor||0),0)
 let totalInvest=investimentos.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalFrigo=frigo.reduce((a,b)=>a+Number(b.valor||0),0)
+let receita=frigo.reduce((a,b)=>a+Number(b.valor||0),0)
 
-let receita=totalFrigo
 let custoTotal=totalFixa+totalVar+totalInvest
 let lucro=receita-custoTotal
-let margem=receita>0?((lucro/receita)*100).toFixed(1):0
 
-dash.innerHTML=`
-Receita: R$ ${receita}<br>
-Fixas: R$ ${totalFixa}<br>
-Variáveis: R$ ${totalVar}<br>
-Investimentos: R$ ${totalInvest}<br>
-Lucro: R$ ${lucro}<br>
-Margem: ${margem}%
+let mediaDespesa=(custoTotal/(despesas.length||1)).toFixed(2)
+let percLucro=receita>0?((lucro/receita)*100).toFixed(1):0
+let percCusto=receita>0?((custoTotal/receita)*100).toFixed(1):0
+
+// CARDS
+cards.innerHTML=`
+<div class="card"><strong>Receita</strong><br>R$ ${receita}</div>
+<div class="card"><strong>Custos</strong><br>R$ ${custoTotal}</div>
+<div class="card"><strong>Lucro</strong><br>R$ ${lucro}</div>
+<div class="card"><strong>Média Despesas</strong><br>R$ ${mediaDespesa}</div>
+<div class="card"><strong>% Lucro</strong><br>${percLucro}%</div>
+<div class="card"><strong>% Custos</strong><br>${percCusto}%</div>
 `
 
+// DRE
+dre.innerHTML=`
+Receita Bruta: R$ ${receita}<br>
+(-) Despesas Fixas: R$ ${totalFixa}<br>
+(-) Despesas Variáveis: R$ ${totalVar}<br>
+(-) Investimentos: R$ ${totalInvest}<br>
+<b>Resultado: R$ ${lucro}</b>
+`
+
+// GRÁFICO
 if(chart) chart.destroy()
 
 chart=new Chart(grafico,{
 type:"bar",
 data:{
 labels:["Receita","Fixas","Variáveis","Investimentos","Lucro"],
-datasets:[{data:[receita,totalFixa,totalVar,totalInvest,lucro],backgroundColor:"#c08a5b"}]
+datasets:[{
+data:[receita,totalFixa,totalVar,totalInvest,lucro],
+backgroundColor:"#c08a5b"
+}]
 }
 })
 
-}
-
-// PDF
-function relatorioPDF(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Relatório Contábil",20,20)
-doc.text(dash.innerText,20,40)
-doc.save("relatorio.pdf")
-}
-
-function notaCompra(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Nota de Compra",20,20)
-doc.text("Produto: "+compraDesc.value,20,40)
-doc.text("Valor: R$ "+compraValor.value,20,50)
-doc.save("nota_compra.pdf")
-}
-
-function holerite(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Holerite",20,20)
-doc.text("Nome: "+nomeFunc.value,20,40)
-doc.text("Valor: R$ "+valorFunc.value,20,50)
-doc.save("holerite.pdf")
 }
 
 </script>
