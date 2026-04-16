@@ -3,273 +3,142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pousada Vale do Café • Sistema</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<title>Pousada Vale do Café</title>
 
 <style>
-body{margin:0;font-family:'Inter';background:#1a120d;color:#f5e6d3}
+body{margin:0;font-family:Arial;background:#1a120d;color:#fff}
 
-/* LOGIN */
-.login-screen{
-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
-background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7)),
-url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c") center/cover;
-}
+.login, .app{display:flex;align-items:center;justify-content:center;height:100vh}
+.app{display:none;flex-direction:column;padding:10px}
 
-.login-box{
-background:#2a1a12;
-padding:40px;
-border-radius:14px;
-width:320px;
-text-align:center;
-box-shadow:0 10px 30px rgba(0,0,0,0.7);
-}
+.box{background:#2a1a12;padding:20px;border-radius:10px;width:300px;text-align:center}
 
-.login-box h1{
-font-family:'Great Vibes';
-font-size:36px;
-color:#d4a373;
-}
+input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
+button{padding:10px;margin-top:5px;background:#a47148;border:none;color:white;width:100%}
 
-input{
-width:100%;
-padding:12px;
-margin:8px 0;
-border-radius:8px;
-border:none;
-}
-
-button{
-width:100%;
-padding:12px;
-background:#a47148;
-border:none;
-border-radius:8px;
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
-
-/* APP */
-.app{display:none}
-
-.sidebar{
-width:240px;
-background:#2a1a12;
-height:100vh;
-position:fixed;
-padding:20px;
-}
-
-.sidebar button{
-display:block;
-margin-bottom:10px;
-}
-
-.main{
-margin-left:260px;
-padding:20px;
-}
-
-/* CARDS */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:10px;
-}
-
-.card{
-background:#362419;
-padding:15px;
-border-radius:10px;
-text-align:center;
-}
-
-.card strong{font-size:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.card{background:#362419;padding:10px;border-radius:8px}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="loginScreen" class="login-screen">
-<div class="login-box">
-
-<h1>Pousada Vale do Café</h1>
-
-<input id="inputUser" placeholder="Usuário">
-<input id="inputPass" type="password" placeholder="Senha">
-
-<button onclick="entrarSistema()">Entrar</button>
-
+<div id="login" class="login">
+<div class="box">
+<h2>Pousada Vale do Café</h2>
+<input id="user" placeholder="Usuário">
+<input id="pass" type="password" placeholder="Senha">
+<button onclick="login()">Entrar</button>
 </div>
 </div>
 
 <!-- APP -->
 <div id="app" class="app">
 
-<div class="sidebar">
-<button onclick="mostrar('dashboard')">Dashboard</button>
-<button onclick="mostrar('financeiro')">Financeiro</button>
-</div>
-
-<div class="main">
-
-<!-- DASHBOARD -->
-<div id="dashboard">
-
 <h2>Dashboard</h2>
 
-<div id="cards" class="grid"></div>
+<div id="dashboard" class="grid"></div>
 
-<canvas id="grafico"></canvas>
-
-<h3>DRE</h3>
-<div id="dre" class="card"></div>
-
-</div>
-
-<!-- FINANCEIRO -->
-<div id="financeiro" style="display:none">
-
-<div class="card">
 <h3>Despesas Fixas</h3>
-<input id="fixaValor" placeholder="Valor">
-<button onclick="addFixa()">Salvar</button>
-</div>
+<input id="fixa" placeholder="Valor">
+<button onclick="addFixa()">Adicionar</button>
 
-<div class="card">
 <h3>Despesas Variáveis</h3>
-<input id="varValor" placeholder="Valor">
-<button onclick="addVar()">Salvar</button>
-</div>
+<input id="var" placeholder="Valor">
+<button onclick="addVar()">Adicionar</button>
 
-</div>
+<h3>Compras</h3>
+<input id="compra" placeholder="Valor">
+<button onclick="addCompra()">Adicionar</button>
 
-</div>
+<h3>Funcionários</h3>
+<input id="func" placeholder="Salário">
+<button onclick="addFunc()">Adicionar</button>
+
+<h3>Estoque</h3>
+<input id="produto" placeholder="Produto">
+<input id="valorProduto" placeholder="Valor">
+<button onclick="addProduto()">Cadastrar</button>
+
+<h3>Consumo Frigobar</h3>
+<select id="quarto"></select>
+<select id="produtoSelect"></select>
+<button onclick="consumir()">Consumir</button>
+
 </div>
 
 <script>
 
-// SUPABASE
-const supabaseClient = supabase.createClient(
-"https://kvlpqffwschikabkupkd.supabase.co",
-"sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
-)
-
-// LOGIN CORRIGIDO
-function entrarSistema(){
-
-const user = document.getElementById("inputUser").value.trim()
-const pass = document.getElementById("inputPass").value.trim()
-
-if(user === "pousadavlc" && pass === "docafe212"){
-
-document.getElementById("loginScreen").style.display = "none"
-document.getElementById("app").style.display = "block"
-
-render()
-
-}else{
-alert("Usuário ou senha inválidos")
+// LOGIN
+function login(){
+if(user.value==="pousadavlc" && pass.value==="docafe212"){
+login.style.display="none"
+app.style.display="flex"
+init()
+}
 }
 
+// BANCO LOCAL
+let db={
+fixas:[],
+variaveis:[],
+compras:[],
+funcionarios:[],
+estoque:[],
+consumo:[]
 }
 
-// ENTER LOGIN
-document.addEventListener("keydown",function(e){
-if(e.key==="Enter") entrarSistema()
-})
-
-// NAVEGAÇÃO
-function mostrar(sec){
-document.getElementById("dashboard").style.display="none"
-document.getElementById("financeiro").style.display="none"
-document.getElementById(sec).style.display="block"
+// INICIAR
+function init(){
+for(let i=1;i<=11;i++){
+quarto.innerHTML+=`<option>${i}</option>`
 }
-
-// INSERTS
-async function addFixa(){
-await supabaseClient.from('despesas').insert([{tipo:"fixa",valor:fixaValor.value}])
 render()
 }
 
-async function addVar(){
-await supabaseClient.from('despesas').insert([{tipo:"variavel",valor:varValor.value}])
+// CADASTROS
+function addFixa(){db.fixas.push(Number(fixa.value));render()}
+function addVar(){db.variaveis.push(Number(var.value));render()}
+function addCompra(){db.compras.push(Number(compra.value));render()}
+function addFunc(){db.funcionarios.push(Number(func.value));render()}
+
+function addProduto(){
+db.estoque.push({nome:produto.value,valor:Number(valorProduto.value)})
+produtoSelect.innerHTML=db.estoque.map(p=>`<option>${p.nome}</option>`).join("")
+render()
+}
+
+// CONSUMO
+function consumir(){
+let p=db.estoque.find(x=>x.nome==produtoSelect.value)
+db.consumo.push({quarto:quarto.value,valor:p.valor})
 render()
 }
 
 // DASHBOARD
-let chart
+function render(){
 
-async function render(){
+let receita=db.consumo.reduce((a,b)=>a+b.valor,0)
 
-try{
+let fixas=db.fixas.reduce((a,b)=>a+b,0)
+let variaveis=db.variaveis.reduce((a,b)=>a+b,0)
+let compras=db.compras.reduce((a,b)=>a+b,0)
+let funcionarios=db.funcionarios.reduce((a,b)=>a+b,0)
 
-let {data:despesas} = await supabaseClient.from('despesas').select('*')
-let {data:investimentos} = await supabaseClient.from('investimentos').select('*')
-let {data:frigo} = await supabaseClient.from('frigobar').select('*')
+let custo=fixas+variaveis+compras+funcionarios
+let lucro=receita-custo
 
-despesas = despesas || []
-investimentos = investimentos || []
-frigo = frigo || []
+let media=custo/(db.fixas.length+db.variaveis.length||1)
+let perc=((lucro/receita)*100||0).toFixed(1)
 
-let fixas = despesas.filter(d=>d.tipo==="fixa")
-let variaveis = despesas.filter(d=>d.tipo==="variavel")
-
-let totalFixa = fixas.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalVar = variaveis.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalInvest = investimentos.reduce((a,b)=>a+Number(b.valor||0),0)
-let receita = frigo.reduce((a,b)=>a+Number(b.valor||0),0)
-
-let custo = totalFixa + totalVar + totalInvest
-let lucro = receita - custo
-
-let media = custo / (despesas.length || 1)
-let percLucro = receita>0?((lucro/receita)*100).toFixed(1):0
-
-// CARDS
-document.getElementById("cards").innerHTML = `
-<div class="card"><strong>Receita</strong><br>R$ ${receita}</div>
-<div class="card"><strong>Custos</strong><br>R$ ${custo}</div>
-<div class="card"><strong>Lucro</strong><br>R$ ${lucro}</div>
-<div class="card"><strong>Média</strong><br>R$ ${media.toFixed(2)}</div>
-<div class="card"><strong>% Lucro</strong><br>${percLucro}%</div>
+dashboard.innerHTML=`
+<div class="card">Receita<br>${receita}</div>
+<div class="card">Custos<br>${custo}</div>
+<div class="card">Lucro<br>${lucro}</div>
+<div class="card">Média<br>${media.toFixed(2)}</div>
+<div class="card">% Lucro<br>${perc}%</div>
 `
-
-// DRE
-document.getElementById("dre").innerHTML = `
-Receita: R$ ${receita}<br>
-Fixas: R$ ${totalFixa}<br>
-Variáveis: R$ ${totalVar}<br>
-Investimentos: R$ ${totalInvest}<br>
-<b>Resultado: R$ ${lucro}</b>
-`
-
-// GRÁFICO
-if(chart) chart.destroy()
-
-chart = new Chart(document.getElementById("grafico"),{
-type:"bar",
-data:{
-labels:["Receita","Fixas","Variáveis","Investimentos","Lucro"],
-datasets:[{
-data:[receita,totalFixa,totalVar,totalInvest,lucro]
-}]
-}
-})
-
-}catch(e){
-console.error(e)
-alert("Erro ao carregar dados do banco")
-}
 
 }
 
