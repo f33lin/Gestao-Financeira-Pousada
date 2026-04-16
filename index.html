@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Pousada Vale do Café • Gestão</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+body{margin:0;font-family:system-ui;background:#1a120d;color:#f5e6d3}
+.login{height:100vh;display:flex;align-items:center;justify-content:center;
+background:url("https://images.unsplash.com/photo-1568605114967-8130f3a36994") center/cover;}
+.login-box{background:rgba(0,0,0,0.7);padding:40px;border-radius:12px;width:300px;text-align:center}
+.login-box h1{font-family:'Great Vibes';color:#d4a373}
+input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none}
+button{padding:10px;border:none;border-radius:8px;background:#c08a5b;color:white}
+.app{display:none}
+.sidebar{width:220px;background:#2a1a12;height:100vh;padding:20px;position:fixed}
+.main{margin-left:240px;padding:20px}
+.card{background:#362419;padding:15px;border-radius:10px;margin:10px 0}
+</style>
+</head>
+
+<body>
+
+<div id="login" class="login">
+<div class="login-box">
+<h1>Pousada Vale do Café</h1>
+<input id="user">
+<input id="pass" type="password">
+<button onclick="entrar()">Entrar</button>
+</div>
+</div>
+
+<div id="app" class="app">
+
+<div class="sidebar">
+<button onclick="view('dashboard')">Dashboard</button>
+<button onclick="view('financeiro')">Financeiro</button>
+<button onclick="view('quartos')">Quartos</button>
+</div>
+
+<div class="main">
+
+<h1>Dashboard</h1>
+
+<div id="dash" class="card"></div>
+<canvas id="grafico"></canvas>
+<button onclick="gerarPDF()">Gerar Relatório Mensal</button>
+
+<div id="financeiro" style="display:none">
+
+<div class="card">
+<h3>Despesas</h3>
+<select id="tipoDespesa">
+<option>Energia</option>
+<option>Água</option>
+<option>Funcionários</option>
+<option>Manutenção</option>
+</select>
+<input id="valorDespesa">
+<button onclick="addDespesa()">Salvar</button>
+</div>
+
+<div class="card">
+<h3>Investimentos</h3>
+<input id="descInv">
+<input id="valorInv">
+<button onclick="addInvestimento()">Salvar</button>
+</div>
+
+</div>
+
+<div id="quartos" style="display:none">
+
+<div class="card">
+<h3>Cadastro de Quartos</h3>
+<input id="numeroQuarto">
+<input id="nomeQuarto">
+<button onclick="addQuarto()">Cadastrar</button>
+</div>
+
+<div class="card">
+<h3>Frigobar</h3>
+<input id="qFrigobar">
+<input id="itemFrigo">
+<input id="valorFrigo">
+<button onclick="addFrigo()">Adicionar</button>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<script>
+
+const supabaseClient = supabase.createClient(
+"https://kvlpqffwschikabkupkd.supabase.co",
+"sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
+)
+
+function entrar(){
+if(user.value==="pousadavlc" && pass.value==="docafe212"){
+login.style.display="none"
+app.style.display="block"
+render()
+}
+}
+
+function view(v){
+financeiro.style.display="none"
+quartos.style.display="none"
+document.getElementById(v).style.display="block"
+}
+
+// INSERTS
+async function addDespesa(){
+await supabaseClient.from('despesas').insert([{tipo:tipoDespesa.value,valor:valorDespesa.value}])
+render()
+}
+
+async function addInvestimento(){
+await supabaseClient.from('investimentos').insert([{descricao:descInv.value,valor:valorInv.value}])
+render()
+}
+
+async function addQuarto(){
+await supabaseClient.from('quartos').insert([{numero:numeroQuarto.value,nome:nomeQuarto.value}])
+render()
+}
+
+async function addFrigo(){
+await supabaseClient.from('frigobar').insert([{
+quarto:qFrigobar.value,
+item:itemFrigo.value,
+valor:valorFrigo.value
+}])
+render()
+}
+
+let chart;
+
+async function render(){
+
+let {data:despesas}=await supabaseClient.from('despesas').select('*')
+let {data:investimentos}=await supabaseClient.from('investimentos').select('*')
+let {data:frigo}=await supabaseClient.from('frigobar').select('*')
+
+let totalDespesas=despesas.reduce((a,b)=>a+Number(b.valor),0)
+let totalInvest=investimentos.reduce((a,b)=>a+Number(b.valor),0)
+let totalFrigo=frigo.reduce((a,b)=>a+Number(b.valor),0)
+
+let receita=totalFrigo
+let lucro=receita-(totalDespesas+totalInvest)
+
+dash.innerHTML=`
+Receita: R$ ${receita}<br>
+Despesas: R$ ${totalDespesas}<br>
+Investimentos: R$ ${totalInvest}<br>
+Lucro: R$ ${lucro}
+`
+
+if(chart) chart.destroy()
+
+chart=new Chart(document.getElementById("grafico"),{
+type:"bar",
+data:{
+labels:["Receita","Despesas","Investimentos","Lucro"],
+datasets:[{
+label:"Financeiro",
+data:[receita,totalDespesas,totalInvest,lucro],
+backgroundColor:"#c08a5b"
+}]
+}
+})
+
+}
+
+// PDF
+function gerarPDF(){
+const { jsPDF } = window.jspdf;
+let doc=new jsPDF();
+
+doc.text("Relatório Mensal - Pousada Vale do Café",20,20)
+doc.text(dash.innerText,20,40)
+
+doc.save("relatorio_mensal.pdf")
+}
+
+</script>
+
+</body>
+</html>
