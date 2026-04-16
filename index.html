@@ -130,24 +130,19 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 
 <script>
 
-// SUPABASE
+// SUPABASE CORRETO
 const supabaseClient = window.supabase.createClient(
-"https://kvlpqffwschikabkupkd.supabase.co",
-"sb_publishable_7rWKuFdnHD7duAYaPBEIOw_cC2i3sXT"
+"https://oifnmngeqhrbqdhqrcq.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pZm5tbnBnZXFocmJxZGhxcmNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyOTEzOTAsImV4cCI6MjA5MTg2NzM5MH0.Bpr5h80wKUxfFt1O8i1xLqXCiurMXo7dSkBFqVYnhXc"
 )
 
-// LOGIN CORRIGIDO
+// LOGIN
 async function login(){
 
 const emailInput = document.getElementById("email").value.trim()
 const senhaInput = document.getElementById("senha").value.trim()
 
-if(!emailInput || !senhaInput){
-alert("Preencha email e senha")
-return
-}
-
-const { data, error } = await supabaseClient.auth.signInWithPassword({
+const { error } = await supabaseClient.auth.signInWithPassword({
 email: emailInput,
 password: senhaInput
 })
@@ -249,7 +244,7 @@ await supabaseClient.from('estoque').update({quantidade:nova}).eq('nome',produto
 render()
 }
 
-// DASHBOARD
+// DASH
 async function render(){
 
 let {data:despesas}=await supabaseClient.from('despesas').select('*')
@@ -276,21 +271,15 @@ cards.innerHTML=`
 `
 
 produtoSelect.innerHTML=estoque.map(p=>`<option>${p.nome}</option>`).join("")
-
-listaEstoque.innerHTML=estoque.map(p=>`
-<div class="card">${p.nome} | Qtd:${p.quantidade}</div>
-`).join("")
-
-listaFrigo.innerHTML=frigo.map(f=>`
-<div class="card">${f.quarto} - ${f.item} - R$${f.valor}</div>
-`).join("")
+listaEstoque.innerHTML=estoque.map(p=>`<div class="card">${p.nome} | Qtd:${p.quantidade}</div>`).join("")
+listaFrigo.innerHTML=frigo.map(f=>`<div class="card">${f.quarto} - ${f.item} - R$${f.valor}</div>`).join("")
 }
 
 // PDF
 function gerarPDF(){
 const { jsPDF } = window.jspdf;
 let doc=new jsPDF();
-doc.text("Relatório Contábil - Pousada Vale do Café",20,20)
+doc.text("Relatório Contábil",20,20)
 doc.text(cards.innerText,20,40)
 doc.save("relatorio.pdf")
 }
