@@ -5,63 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pousada Vale do Café • Sistema</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{margin:0;font-family:'Playfair Display',serif;background:#1a120d;color:#f5e6d3}
-.login-screen{
-height:100vh;display:flex;align-items:center;justify-content:center;
-background:linear-gradient(rgba(20,10,5,0.85),rgba(20,10,5,0.85)),
-url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c") center/cover;
+body{margin:0;font-family:Arial;background:#1a120d;color:white}
+
+/* LOGIN */
+#loginScreen{
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
 }
-.login-box{
-background:rgba(44,27,18,0.95);
-padding:45px;border-radius:16px;width:340px;text-align:center;
+.box{
+background:#2a1a12;
+padding:30px;
+border-radius:10px;
+width:300px;
+text-align:center;
 }
-.login-box h1{font-family:'Great Vibes';font-size:38px;color:#d4a373}
-input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none}
-button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;color:white;margin-top:5px}
-.app{display:none}
-.sidebar{width:240px;background:#2a1a12;height:100vh;position:fixed;padding:20px}
-.main{margin-left:260px;padding:20px}
-.card{background:#362419;padding:15px;border-radius:12px;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
+
+/* APP */
+#app{display:none}
+.sidebar{
+position:fixed;
+width:220px;
+height:100vh;
+background:#2a1a12;
+padding:10px;
+}
+.main{
+margin-left:230px;
+padding:15px;
+}
+
+.card{
+background:#362419;
+padding:10px;
+margin:5px;
+border-radius:8px;
+}
+
+button{width:100%;margin:5px 0;padding:8px;background:#a47148;border:none;color:white}
+input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 </head>
 
 <body>
 
 <!-- LOGIN -->
-<div id="loginScreen" class="login-screen">
-<div class="login-box">
-<h1>Pousada Vale do Café</h1>
-<input id="user" placeholder="Usuário">
-<input id="pass" type="password" placeholder="Senha">
-<button onclick="login()">Entrar</button>
+<div id="loginScreen">
+<div class="box">
+<h2>Pousada Vale do Café</h2>
+<input id="inputUser" placeholder="Usuário">
+<input id="inputPass" type="password" placeholder="Senha">
+<button onclick="entrarSistema()">Entrar</button>
 </div>
 </div>
 
 <!-- APP -->
-<div id="app" class="app">
+<div id="app">
 
 <div class="sidebar">
 <button onclick="view('dashboard')">Dashboard</button>
 <button onclick="view('financeiro')">Financeiro</button>
-<button onclick="view('compras')">Compras</button>
-<button onclick="view('funcionarios')">Funcionários</button>
-<button onclick="view('quartos')">Quartos</button>
+<button onclick="view('estoque')">Estoque</button>
+<button onclick="gerarPDF()">Relatório PDF</button>
 </div>
 
 <div class="main">
 
-<h1>Dashboard</h1>
-<div id="dash" class="card"></div>
-<canvas id="grafico"></canvas>
-<button onclick="relatorioPDF()">Relatório PDF</button>
+<!-- DASH -->
+<div id="dashboard">
+<h3>Dashboard</h3>
+<div id="cards"></div>
+</div>
 
 <!-- FINANCEIRO -->
 <div id="financeiro" style="display:none">
@@ -69,80 +89,51 @@ button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;
 <div class="grid">
 
 <div class="card">
-<h3>Despesas Fixas</h3>
-<select id="fixaCategoria">
-<option>Energia</option>
-<option>Internet</option>
-<option>Salários</option>
-<option>Contabilidade</option>
-<option>Impostos</option>
-</select>
-<input id="fixaDesc" placeholder="Descrição">
-<input id="fixaValor" placeholder="Valor">
-<input type="date" id="fixaData">
+<h4>Despesa Fixa</h4>
+<input id="fixa">
 <button onclick="addFixa()">Salvar</button>
 </div>
 
 <div class="card">
-<h3>Despesas Variáveis</h3>
-<select id="varCategoria">
-<option>Lavanderia</option>
-<option>Limpeza</option>
-<option>Café da manhã</option>
-<option>Manutenção</option>
-<option>Reposição</option>
-</select>
-<input id="varDesc" placeholder="Descrição">
-<input id="varValor" placeholder="Valor">
-<input type="date" id="varData">
-<button onclick="addVar()">Salvar</button>
+<h4>Despesa Variável</h4>
+<input id="variavel">
+<button onclick="addVariavel()">Salvar</button>
 </div>
 
 <div class="card">
-<h3>Investimentos</h3>
-<input id="descInv" placeholder="Descrição">
-<input id="valorInv" placeholder="Valor">
-<button onclick="addInvestimento()">Salvar</button>
-</div>
-
-</div>
-</div>
-
-<!-- COMPRAS -->
-<div id="compras" style="display:none">
-<div class="card">
-<input id="compraDesc" placeholder="Produto">
-<input id="compraValor" placeholder="Valor">
-<button onclick="addCompra()">Salvar</button>
-<button onclick="notaCompra()">Nota PDF</button>
-</div>
-</div>
-
-<!-- FUNCIONARIOS -->
-<div id="funcionarios" style="display:none">
-<div class="card">
-<input id="nomeFunc" placeholder="Nome">
-<input id="funcaoFunc" placeholder="Função">
-<input id="valorFunc" placeholder="Valor">
+<h4>Funcionário</h4>
+<input id="funcionario">
 <button onclick="addFuncionario()">Salvar</button>
-<button onclick="holerite()">Holerite PDF</button>
-</div>
 </div>
 
-<!-- QUARTOS -->
-<div id="quartos" style="display:none">
+</div>
+
+</div>
+
+<!-- ESTOQUE -->
+<div id="estoque" style="display:none">
+
+<div class="grid">
+
 <div class="card">
-<input id="numeroQuarto" placeholder="Número">
-<input id="nomeQuarto" placeholder="Nome">
-<button onclick="addQuarto()">Cadastrar</button>
+<h4>Produto</h4>
+<input id="nomeProduto">
+<input id="qtdProduto">
+<input id="valorProduto">
+<button onclick="addProduto()">Cadastrar</button>
 </div>
 
 <div class="card">
-<input id="qFrigobar" placeholder="Quarto">
-<input id="itemFrigo" placeholder="Item">
-<input id="valorFrigo" placeholder="Valor">
-<button onclick="addFrigo()">Adicionar</button>
+<h4>Baixa</h4>
+<select id="produtoBaixa"></select>
+<input id="qtdBaixa">
+<button onclick="baixar()">Baixar</button>
 </div>
+
+</div>
+
+<div id="listaEstoque"></div>
+
 </div>
 
 </div>
@@ -153,13 +144,13 @@ button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;
 // SUPABASE
 const supabaseClient = supabase.createClient(
 "https://kvlpqffwschikabkupkd.supabase.co",
-"sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
+"sb_publishable_7rWKuFdnHD7duAYaPBEIOw_cC2i3sXT"
 )
 
 // LOGIN
-function login(){
-const u=document.getElementById("user").value.trim()
-const p=document.getElementById("pass").value.trim()
+function entrarSistema(){
+const u=inputUser.value.trim()
+const p=inputPass.value.trim()
 
 if(u==="pousadavlc" && p==="docafe212"){
 loginScreen.style.display="none"
@@ -170,126 +161,119 @@ alert("Login inválido")
 }
 }
 
+// ENTER
+document.addEventListener("keydown",e=>{
+if(e.key==="Enter") entrarSistema()
+})
+
 // VIEW
 function view(v){
-["financeiro","compras","funcionarios","quartos"].forEach(x=>{
-document.getElementById(x).style.display="none"
-})
+dashboard.style.display="none"
+financeiro.style.display="none"
+estoque.style.display="none"
 document.getElementById(v).style.display="block"
 }
 
-// INSERTS
+// FINANCEIRO
 async function addFixa(){
-await supabaseClient.from('despesas').insert([{
-tipo:"fixa",categoria:fixaCategoria.value,descricao:fixaDesc.value,valor:fixaValor.value,data:fixaData.value
-}])
+await supabaseClient.from('despesas').insert([{tipo:"fixa",valor:Number(fixa.value)}])
 render()
 }
 
-async function addVar(){
-await supabaseClient.from('despesas').insert([{
-tipo:"variavel",categoria:varCategoria.value,descricao:varDesc.value,valor:varValor.value,data:varData.value
-}])
-render()
-}
-
-async function addInvestimento(){
-await supabaseClient.from('investimentos').insert([{descricao:descInv.value,valor:valorInv.value}])
-render()
-}
-
-async function addCompra(){
-await supabaseClient.from('compras').insert([{descricao:compraDesc.value,valor:compraValor.value}])
+async function addVariavel(){
+await supabaseClient.from('despesas').insert([{tipo:"variavel",valor:Number(variavel.value)}])
 render()
 }
 
 async function addFuncionario(){
-await supabaseClient.from('funcionarios').insert([{nome:nomeFunc.value,funcao:funcaoFunc.value,valor:valorFunc.value}])
+await supabaseClient.from('funcionarios').insert([{valor:Number(funcionario.value)}])
 render()
 }
 
-async function addQuarto(){
-await supabaseClient.from('quartos').insert([{numero:numeroQuarto.value,nome:nomeQuarto.value}])
-render()
+// ESTOQUE
+async function addProduto(){
+await supabaseClient.from('estoque').insert([{
+nome:nomeProduto.value,
+quantidade:Number(qtdProduto.value),
+valor:Number(valorProduto.value)
+}])
+carregarEstoque()
 }
 
-async function addFrigo(){
-await supabaseClient.from('frigobar').insert([{quarto:qFrigobar.value,item:itemFrigo.value,valor:valorFrigo.value}])
-render()
+async function baixar(){
+
+let id=produtoBaixa.value
+let qtd=Number(qtdBaixa.value)
+
+let {data}=await supabaseClient.from('estoque').select('*').eq('id',id).single()
+
+let nova=data.quantidade-qtd
+
+if(nova<0){alert("Sem estoque");return}
+
+await supabaseClient.from('estoque').update({quantidade:nova}).eq('id',id)
+
+// lançamento
+await supabaseClient.from('lancamentos').insert([{
+tipo:"custo",
+descricao:data.nome,
+valor:data.valor*qtd
+}])
+
+carregarEstoque()
 }
 
-// DASHBOARD
-let chart;
+// CARREGAR ESTOQUE
+async function carregarEstoque(){
 
+let {data}=await supabaseClient.from('estoque').select('*')
+
+produtoBaixa.innerHTML=data.map(p=>`
+<option value="${p.id}">${p.nome} (${p.quantidade})</option>
+`).join("")
+
+listaEstoque.innerHTML=data.map(p=>`
+<div class="card">
+${p.nome} - Qtd:${p.quantidade} - R$${p.valor}
+</div>
+`).join("")
+}
+
+// DASH
 async function render(){
 
 let {data:despesas}=await supabaseClient.from('despesas').select('*')
-let {data:investimentos}=await supabaseClient.from('investimentos').select('*')
-let {data:frigo}=await supabaseClient.from('frigobar').select('*')
+let {data:func}=await supabaseClient.from('funcionarios').select('*')
+let {data:lanc}=await supabaseClient.from('lancamentos').select('*')
 
 despesas=despesas||[]
-investimentos=investimentos||[]
-frigo=frigo||[]
+func=func||[]
+lanc=lanc||[]
 
-let fixas=despesas.filter(d=>d.tipo==="fixa")
-let variaveis=despesas.filter(d=>d.tipo==="variavel")
+let fixas=despesas.filter(d=>d.tipo==="fixa").reduce((a,b)=>a+Number(b.valor),0)
+let vars=despesas.filter(d=>d.tipo==="variavel").reduce((a,b)=>a+Number(b.valor),0)
+let funcionarios=func.reduce((a,b)=>a+Number(b.valor),0)
+let custos=lanc.reduce((a,b)=>a+Number(b.valor),0)
 
-let totalFixa=fixas.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalVar=variaveis.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalInvest=investimentos.reduce((a,b)=>a+Number(b.valor||0),0)
-let totalFrigo=frigo.reduce((a,b)=>a+Number(b.valor||0),0)
+let total=fixas+vars+funcionarios+custos
+let receita=0
+let lucro=receita-total
 
-let receita=totalFrigo
-let custoTotal=totalFixa+totalVar+totalInvest
-let lucro=receita-custoTotal
-let margem=receita>0?((lucro/receita)*100).toFixed(1):0
-
-dash.innerHTML=`
-Receita: R$ ${receita}<br>
-Fixas: R$ ${totalFixa}<br>
-Variáveis: R$ ${totalVar}<br>
-Investimentos: R$ ${totalInvest}<br>
-Lucro: R$ ${lucro}<br>
-Margem: ${margem}%
+cards.innerHTML=`
+<div class="card">Custos: ${total}</div>
+<div class="card">Lucro: ${lucro}</div>
 `
 
-if(chart) chart.destroy()
-
-chart=new Chart(grafico,{
-type:"bar",
-data:{
-labels:["Receita","Fixas","Variáveis","Investimentos","Lucro"],
-datasets:[{data:[receita,totalFixa,totalVar,totalInvest,lucro],backgroundColor:"#c08a5b"}]
-}
-})
-
+carregarEstoque()
 }
 
 // PDF
-function relatorioPDF(){
+function gerarPDF(){
 const { jsPDF } = window.jspdf;
 let doc=new jsPDF();
 doc.text("Relatório Contábil",20,20)
-doc.text(dash.innerText,20,40)
+doc.text(cards.innerText,20,40)
 doc.save("relatorio.pdf")
-}
-
-function notaCompra(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Nota de Compra",20,20)
-doc.text("Produto: "+compraDesc.value,20,40)
-doc.text("Valor: R$ "+compraValor.value,20,50)
-doc.save("nota_compra.pdf")
-}
-
-function holerite(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Holerite",20,20)
-doc.text("Nome: "+nomeFunc.value,20,40)
-doc.text("Valor: R$ "+valorFunc.value,20,50)
-doc.save("holerite.pdf")
 }
 
 </script>
