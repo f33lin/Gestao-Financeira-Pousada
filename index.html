@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pousada Vale do Café</title>
 
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
 <style>
-body{margin:0;font-family:Arial;background:#1a120d;color:#fff}
+body{margin:0;font-family:Arial;background:#1a120d;color:white}
 
 /* LOGIN */
-.login{
+#loginScreen{
 height:100vh;
 display:flex;
 align-items:center;
@@ -22,48 +19,33 @@ background:#1a120d;
 
 .box{
 background:#2a1a12;
-padding:25px;
+padding:30px;
 border-radius:10px;
 width:300px;
 text-align:center;
 }
 
-/* APP */
-.app{display:none}
-.sidebar{
-position:fixed;
-width:200px;
-height:100vh;
-background:#2a1a12;
+input{
+width:100%;
 padding:10px;
-}
-.main{
-margin-left:210px;
-padding:10px;
-}
-
-.card{
-background:#362419;
-padding:10px;
-margin:5px;
-border-radius:8px;
+margin:8px 0;
+border:none;
+border-radius:6px;
 }
 
 button{
-padding:8px;
+width:100%;
+padding:10px;
 background:#a47148;
 border:none;
 color:white;
-margin:3px 0;
-width:100%;
+border-radius:6px;
 }
 
-input,select{
-width:100%;
-padding:8px;
-margin:3px 0;
-border-radius:6px;
-border:none;
+/* APP */
+#app{
+display:none;
+padding:20px;
 }
 </style>
 </head>
@@ -71,175 +53,53 @@ border:none;
 <body>
 
 <!-- LOGIN -->
-<div id="login" class="login">
+<div id="loginScreen">
 <div class="box">
+
 <h2>Pousada Vale do Café</h2>
-<input id="user" placeholder="Usuário">
-<input id="pass" type="password" placeholder="Senha">
-<button onclick="login()">Entrar</button>
+
+<input id="inputUser" placeholder="Usuário">
+<input id="inputPass" type="password" placeholder="Senha">
+
+<button onclick="entrarSistema()">Entrar</button>
+
 </div>
 </div>
 
 <!-- APP -->
-<div id="app" class="app">
+<div id="app">
 
-<div class="sidebar">
-<button onclick="view('dashboard')">Dashboard</button>
-<button onclick="view('financeiro')">Financeiro</button>
-<button onclick="view('estoque')">Estoque</button>
-<button onclick="gerarPDF()">Gerar Relatório</button>
-</div>
+<h2>Sistema carregado com sucesso ✅</h2>
 
-<div class="main">
+<p>Se você está vendo isso, o login funcionou.</p>
 
-<div id="dashboard">
-
-<h3>Dashboard</h3>
-<div id="cards"></div>
-
-</div>
-
-<div id="financeiro" style="display:none">
-
-<h3>Despesas Fixas</h3>
-<input id="fixa">
-<button onclick="add('fixas')">Adicionar</button>
-
-<h3>Despesas Variáveis</h3>
-<input id="var">
-<button onclick="add('variaveis')">Adicionar</button>
-
-<h3>Funcionários</h3>
-<input id="func">
-<button onclick="add('funcionarios')">Adicionar</button>
-
-</div>
-
-<div id="estoque" style="display:none">
-
-<h3>Produto</h3>
-<input id="produto">
-<input id="valorProduto">
-<button onclick="addProduto()">Cadastrar</button>
-
-<h3>Consumo</h3>
-<select id="produtoSelect"></select>
-<button onclick="consumir()">Consumir</button>
-
-</div>
-
-</div>
 </div>
 
 <script>
 
-// SUPABASE (SAFE MODE)
-let supabase=null
-try{
-supabase = window.supabase.createClient(
-"https://kvlpqffwschikabkupkd.supabase.co",
-"sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
-)
-}catch(e){
-console.log("modo offline")
+// LOGIN 100% FUNCIONAL
+function entrarSistema(){
+
+const usuario = document.getElementById("inputUser").value.trim()
+const senha = document.getElementById("inputPass").value.trim()
+
+if(usuario === "pousadavlc" && senha === "docafe212"){
+
+document.getElementById("loginScreen").style.display = "none"
+document.getElementById("app").style.display = "block"
+
+}else{
+alert("Usuário ou senha inválidos")
 }
 
-// DB LOCAL (fallback)
-let db={
-fixas:[],
-variaveis:[],
-funcionarios:[],
-estoque:[],
-consumo:[]
 }
 
-// LOGIN
-function login(){
-if(user.value==="pousadavlc" && pass.value==="docafe212"){
-login.style.display="none"
-app.style.display="block"
-render()
+// ENTER FUNCIONANDO
+document.addEventListener("keydown", function(e){
+if(e.key === "Enter"){
+entrarSistema()
 }
-}
-
-// ENTER
-document.addEventListener("keydown",e=>{
-if(e.key==="Enter") login()
 })
-
-// VIEW
-function view(v){
-dashboard.style.display="none"
-financeiro.style.display="none"
-estoque.style.display="none"
-document.getElementById(v).style.display="block"
-}
-
-// ADD
-async function add(tipo){
-
-let valor = Number(document.getElementById(tipo==="fixas"?"fixa":tipo==="variaveis"?"var":"func").value)
-
-db[tipo].push(valor)
-
-// tenta salvar no supabase
-if(supabase){
-try{
-await supabase.from(tipo).insert([{valor}])
-}catch(e){console.log("fallback ativo")}
-}
-
-render()
-}
-
-// PRODUTO
-function addProduto(){
-let p={nome:produto.value,valor:Number(valorProduto.value)}
-db.estoque.push(p)
-
-produtoSelect.innerHTML=db.estoque.map(x=>`<option>${x.nome}</option>`).join("")
-}
-
-// CONSUMO
-function consumir(){
-let p=db.estoque.find(x=>x.nome==produtoSelect.value)
-db.consumo.push(p)
-render()
-}
-
-// DASH
-function render(){
-
-let receita=db.consumo.reduce((a,b)=>a+b.valor,0)
-
-let fixas=db.fixas.reduce((a,b)=>a+b,0)
-let variaveis=db.variaveis.reduce((a,b)=>a+b,0)
-let func=db.funcionarios.reduce((a,b)=>a+b,0)
-
-let custo=fixas+variaveis+func
-let lucro=receita-custo
-
-let perc=((lucro/receita)*100||0).toFixed(1)
-
-cards.innerHTML=`
-<div class="card">Receita: ${receita}</div>
-<div class="card">Custos: ${custo}</div>
-<div class="card">Lucro: ${lucro}</div>
-<div class="card">% Lucro: ${perc}%</div>
-`
-}
-
-// PDF
-function gerarPDF(){
-
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-
-doc.text("Relatório Pousada Vale do Café",20,20)
-doc.text(cards.innerText,20,40)
-
-doc.save("relatorio.pdf")
-}
 
 </script>
 
