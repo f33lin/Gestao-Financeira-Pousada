@@ -5,11 +5,10 @@
 <title>Pousada Vale do Café</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#1a120d;color:white}
-#loginScreen{height:100vh;display:flex;align-items:center;justify-content:center}
+#login{height:100vh;display:flex;align-items:center;justify-content:center}
 .box{background:#2a1a12;padding:30px;border-radius:10px;width:300px;text-align:center}
 #app{display:none}
 .sidebar{position:fixed;width:220px;height:100vh;background:#2a1a12;padding:10px}
@@ -17,32 +16,26 @@ body{margin:0;font-family:Arial;background:#1a120d;color:white}
 .card{background:#362419;padding:10px;margin:5px;border-radius:8px}
 button{width:100%;padding:8px;background:#a47148;border:none;color:white;margin:5px 0}
 input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="loginScreen">
+<div id="login">
 <div class="box">
 <h2>Pousada Vale do Café</h2>
-<input id="email" placeholder="Email">
-<input id="senha" type="password" placeholder="Senha">
+<input id="email">
+<input id="senha" type="password">
 <button onclick="login()">Entrar</button>
 </div>
 </div>
 
-<!-- APP -->
 <div id="app">
 
 <div class="sidebar">
 <button onclick="view('dashboard')">Dashboard</button>
 <button onclick="view('financeiro')">Financeiro</button>
-<button onclick="view('funcionarios')">Funcionários</button>
-<button onclick="view('frigobar')">Frigobar</button>
 <button onclick="view('estoque')">Estoque</button>
-<button onclick="gerarPDF()">Relatório</button>
 <button onclick="logout()">Sair</button>
 </div>
 
@@ -54,68 +47,14 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 </div>
 
 <div id="financeiro" style="display:none">
-<div class="grid">
-<div class="card">
-<h4>Despesa Fixa</h4>
-<select id="fixaCategoria">
-<option>Energia</option>
-<option>Internet</option>
-<option>Salários</option>
-<option>Contabilidade</option>
-<option>Impostos</option>
-</select>
-<input id="fixaValor">
-<button onclick="addFixa()">Salvar</button>
-</div>
-
-<div class="card">
-<h4>Despesa Variável</h4>
-<select id="varCategoria">
-<option>Lavanderia</option>
-<option>Limpeza</option>
-<option>Café</option>
-<option>Manutenção</option>
-</select>
-<input id="varValor">
-<button onclick="addVar()">Salvar</button>
-</div>
-</div>
-</div>
-
-<div id="funcionarios" style="display:none">
-<div class="card">
-<input id="nomeFunc" placeholder="Nome">
-<input id="cargoFunc" placeholder="Cargo">
-<input id="salarioFunc" placeholder="Salário">
-<button onclick="addFuncionario()">Cadastrar</button>
-</div>
-</div>
-
-<div id="frigobar" style="display:none">
-<div class="card">
-<select id="quarto"></select>
-<input id="itemFrigo">
-<input id="valorFrigo">
-<button onclick="addFrigo()">Adicionar</button>
-</div>
-<div id="listaFrigo"></div>
+<input id="valor">
+<button onclick="addDespesa()">Salvar despesa</button>
 </div>
 
 <div id="estoque" style="display:none">
-<div class="card">
-<input id="nomeProduto">
-<input id="qtdProduto">
-<input id="valorProduto">
-<button onclick="addProduto()">Cadastrar</button>
-</div>
-
-<div class="card">
-<select id="produtoSelect"></select>
-<input id="qtdBaixa">
-<button onclick="baixar()">Baixar</button>
-</div>
-
-<div id="listaEstoque"></div>
+<input id="produto">
+<input id="qtd">
+<button onclick="addProduto()">Salvar produto</button>
 </div>
 
 </div>
@@ -123,149 +62,76 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 
 <script>
 
-// 🔥 SUPABASE SAFE MODE
-let supabaseClient = null
-let online = true
-
-try{
-supabaseClient = window.supabase.createClient(
+const supabase = window.supabase.createClient(
 "https://oifnmngeqhrbqdhqrcq.supabase.co",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 )
-}catch(e){
-online=false
-}
 
-// 🧠 BANCO LOCAL (fallback)
-let db={
-despesas:[],
-funcionarios:[],
-frigobar:[],
-estoque:[]
-}
+let user = null
 
-// LOGIN
 async function login(){
-try{
-const {error}=await supabaseClient.auth.signInWithPassword({
-email:email.value,
-password:senha.value
+
+const { data, error } = await supabase.auth.signInWithPassword({
+email: email.value,
+password: senha.value
 })
-if(error){alert(error.message);return}
+
+if(error){ alert(error.message); return }
+
+user = data.user
 abrir()
-}catch(e){
-alert("Modo offline")
-abrir()
-}
 }
 
-// SESSÃO
-window.onload = async ()=>{
-try{
-const {data}=await supabaseClient.auth.getSession()
-if(data.session) abrir()
-}catch(e){}
+async function check(){
+const { data } = await supabase.auth.getSession()
+if(data.session){
+user = data.session.user
+abrir()
 }
+}
+check()
 
-// ABRIR
 function abrir(){
-loginScreen.style.display="none"
+login.style.display="none"
 app.style.display="block"
-init()
+render()
 }
 
-// LOGOUT
 function logout(){
+supabase.auth.signOut()
 location.reload()
 }
 
-// INIT
-function init(){
-for(let i=1;i<=11;i++) quarto.innerHTML+=`<option>Quarto ${i}</option>`
-render()
-}
-
-// VIEW
 function view(v){
-["dashboard","financeiro","funcionarios","frigobar","estoque"].forEach(x=>{
-document.getElementById(x).style.display="none"
-})
+dashboard.style.display="none"
+financeiro.style.display="none"
+estoque.style.display="none"
 document.getElementById(v).style.display="block"
 }
 
-// INSERÇÃO SEGURA
-async function safeInsert(table,data){
-try{
-if(supabaseClient){
-await supabaseClient.from(table).insert([data])
-}
-}catch(e){
-console.log("offline fallback")
-}
-db[table].push(data)
-}
-
-// FINANCEIRO
-function addFixa(){
-safeInsert("despesas",{tipo:"fixa",valor:Number(fixaValor.value)})
-render()
-}
-function addVar(){
-safeInsert("despesas",{tipo:"variavel",valor:Number(varValor.value)})
+async function addDespesa(){
+await supabase.from('despesas').insert([{
+user_id:user.id,
+valor:Number(valor.value)
+}])
 render()
 }
 
-// FUNCIONARIOS
-function addFuncionario(){
-safeInsert("funcionarios",{valor:Number(salarioFunc.value)})
+async function addProduto(){
+await supabase.from('estoque').insert([{
+user_id:user.id,
+nome:produto.value,
+quantidade:Number(qtd.value)
+}])
 render()
 }
 
-// FRIGOBAR
-function addFrigo(){
-safeInsert("frigobar",{valor:Number(valorFrigo.value),quarto:quarto.value,item:itemFrigo.value})
-render()
-}
+async function render(){
 
-// ESTOQUE
-function addProduto(){
-safeInsert("estoque",{nome:nomeProduto.value,quantidade:Number(qtdProduto.value),valor:Number(valorProduto.value)})
-render()
-}
+let {data:despesas}=await supabase.from('despesas').select('*')
+let total=despesas.reduce((a,b)=>a+Number(b.valor||0),0)
 
-function baixar(){
-let p=db.estoque.find(x=>x.nome==produtoSelect.value)
-if(!p) return
-p.quantidade -= Number(qtdBaixa.value)
-render()
-}
-
-// DASH
-function render(){
-
-let receita=db.frigobar.reduce((a,b)=>a+b.valor,0)
-let custos=db.despesas.reduce((a,b)=>a+b.valor,0)+db.funcionarios.reduce((a,b)=>a+b.valor,0)
-let lucro=receita-custos
-let margem=receita>0?((lucro/receita)*100).toFixed(1):0
-
-cards.innerHTML=`
-<div class="card">Receita: ${receita}</div>
-<div class="card">Custos: ${custos}</div>
-<div class="card">Lucro: ${lucro}</div>
-<div class="card">Margem: ${margem}%</div>
-`
-
-produtoSelect.innerHTML=db.estoque.map(p=>`<option>${p.nome}</option>`).join("")
-listaEstoque.innerHTML=db.estoque.map(p=>`<div class="card">${p.nome} Qtd:${p.quantidade}</div>`).join("")
-listaFrigo.innerHTML=db.frigobar.map(f=>`<div class="card">${f.quarto} - ${f.item} - R$${f.valor}</div>`).join("")
-}
-
-// PDF
-function gerarPDF(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text(cards.innerText,20,20)
-doc.save("relatorio.pdf")
+cards.innerHTML=`<div class="card">Total despesas: ${total}</div>`
 }
 
 </script>
