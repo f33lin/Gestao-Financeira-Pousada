@@ -3,51 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pousada Vale do Café • Sistema</title>
+<title>Pousada Vale do Café</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 body{margin:0;font-family:Arial;background:#1a120d;color:white}
 
 /* LOGIN */
 #loginScreen{
-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
+height:100vh;display:flex;align-items:center;justify-content:center;
 }
-.box{
-background:#2a1a12;
-padding:30px;
-border-radius:10px;
-width:300px;
-text-align:center;
-}
+.box{background:#2a1a12;padding:30px;border-radius:10px;width:300px;text-align:center}
 
 /* APP */
 #app{display:none}
-.sidebar{
-position:fixed;
-width:220px;
-height:100vh;
-background:#2a1a12;
-padding:10px;
-}
-.main{
-margin-left:230px;
-padding:15px;
-}
+.sidebar{position:fixed;width:220px;height:100vh;background:#2a1a12;padding:10px}
+.main{margin-left:230px;padding:15px}
 
-.card{
-background:#362419;
-padding:10px;
-margin:5px;
-border-radius:8px;
-}
-
-button{width:100%;margin:5px 0;padding:8px;background:#a47148;border:none;color:white}
+.card{background:#362419;padding:10px;margin:5px;border-radius:8px}
+button{width:100%;padding:8px;background:#a47148;border:none;color:white;margin:5px 0}
 input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 </style>
@@ -59,9 +34,9 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 <div id="loginScreen">
 <div class="box">
 <h2>Pousada Vale do Café</h2>
-<input id="inputUser" placeholder="Usuário">
-<input id="inputPass" type="password" placeholder="Senha">
-<button onclick="entrarSistema()">Entrar</button>
+<input id="user">
+<input id="pass" type="password">
+<button onclick="entrar()">Entrar</button>
 </div>
 </div>
 
@@ -71,13 +46,14 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 <div class="sidebar">
 <button onclick="view('dashboard')">Dashboard</button>
 <button onclick="view('financeiro')">Financeiro</button>
+<button onclick="view('funcionarios')">Funcionários</button>
+<button onclick="view('frigobar')">Frigobar</button>
 <button onclick="view('estoque')">Estoque</button>
-<button onclick="gerarPDF()">Relatório PDF</button>
 </div>
 
 <div class="main">
 
-<!-- DASH -->
+<!-- DASHBOARD -->
 <div id="dashboard">
 <h3>Dashboard</h3>
 <div id="cards"></div>
@@ -90,46 +66,75 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 
 <div class="card">
 <h4>Despesa Fixa</h4>
-<input id="fixa">
+<select id="fixaCategoria">
+<option>Energia</option>
+<option>Internet</option>
+<option>Salários administrativos</option>
+<option>Contabilidade</option>
+<option>Impostos</option>
+<option>Segurança</option>
+<option>Sistemas</option>
+</select>
+<input id="fixaValor" placeholder="Valor">
 <button onclick="addFixa()">Salvar</button>
 </div>
 
 <div class="card">
 <h4>Despesa Variável</h4>
-<input id="variavel">
-<button onclick="addVariavel()">Salvar</button>
+<select id="varCategoria">
+<option>Lavanderia</option>
+<option>Limpeza</option>
+<option>Café da manhã</option>
+<option>Manutenção</option>
+<option>Água</option>
+<option>Reposição frigobar</option>
+</select>
+<input id="varValor" placeholder="Valor">
+<button onclick="addVar()">Salvar</button>
 </div>
+
+</div>
+
+</div>
+
+<!-- FUNCIONARIOS -->
+<div id="funcionarios" style="display:none">
+<div class="card">
+<input id="nomeFunc" placeholder="Nome">
+<input id="cargoFunc" placeholder="Cargo">
+<input id="salarioFunc" placeholder="Salário">
+<button onclick="addFuncionario()">Cadastrar</button>
+</div>
+</div>
+
+<!-- FRIGOBAR -->
+<div id="frigobar" style="display:none">
 
 <div class="card">
-<h4>Funcionário</h4>
-<input id="funcionario">
-<button onclick="addFuncionario()">Salvar</button>
+<select id="quarto"></select>
+<input id="itemFrigo" placeholder="Item">
+<input id="valorFrigo" placeholder="Valor">
+<button onclick="addFrigo()">Adicionar</button>
 </div>
 
-</div>
+<div id="listaFrigo"></div>
 
 </div>
 
 <!-- ESTOQUE -->
 <div id="estoque" style="display:none">
 
-<div class="grid">
-
 <div class="card">
-<h4>Produto</h4>
-<input id="nomeProduto">
-<input id="qtdProduto">
-<input id="valorProduto">
+<input id="nomeProduto" placeholder="Produto">
+<input id="qtdProduto" placeholder="Quantidade">
+<input id="valorProduto" placeholder="Valor">
 <button onclick="addProduto()">Cadastrar</button>
 </div>
 
 <div class="card">
-<h4>Baixa</h4>
-<select id="produtoBaixa"></select>
-<input id="qtdBaixa">
+<select id="produtoSelect"></select>
+<input id="qtdBaixa" placeholder="Quantidade">
 <button onclick="baixar()">Baixar</button>
-</div>
-
 </div>
 
 <div id="listaEstoque"></div>
@@ -142,138 +147,127 @@ input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
 <script>
 
 // SUPABASE
-const supabaseClient = supabase.createClient(
+const supabase = window.supabase.createClient(
 "https://kvlpqffwschikabkupkd.supabase.co",
 "sb_publishable_7rWKuFdnHD7duAYaPBEIOw_cC2i3sXT"
 )
 
 // LOGIN
-function entrarSistema(){
-const u=inputUser.value.trim()
-const p=inputPass.value.trim()
-
-if(u==="pousadavlc" && p==="docafe212"){
+function entrar(){
+if(user.value==="pousadavlc" && pass.value==="docafe212"){
 loginScreen.style.display="none"
 app.style.display="block"
-render()
+init()
 }else{
 alert("Login inválido")
 }
 }
 
-// ENTER
-document.addEventListener("keydown",e=>{
-if(e.key==="Enter") entrarSistema()
-})
+// INIT
+function init(){
+for(let i=1;i<=11;i++){
+quarto.innerHTML+=`<option>Quarto ${i}</option>`
+}
+render()
+}
 
 // VIEW
 function view(v){
-dashboard.style.display="none"
-financeiro.style.display="none"
-estoque.style.display="none"
+["dashboard","financeiro","funcionarios","frigobar","estoque"].forEach(x=>{
+document.getElementById(x).style.display="none"
+})
 document.getElementById(v).style.display="block"
 }
 
 // FINANCEIRO
 async function addFixa(){
-await supabaseClient.from('despesas').insert([{tipo:"fixa",valor:Number(fixa.value)}])
+await supabase.from('despesas').insert([{tipo:"fixa",categoria:fixaCategoria.value,valor:Number(fixaValor.value)}])
 render()
 }
 
-async function addVariavel(){
-await supabaseClient.from('despesas').insert([{tipo:"variavel",valor:Number(variavel.value)}])
+async function addVar(){
+await supabase.from('despesas').insert([{tipo:"variavel",categoria:varCategoria.value,valor:Number(varValor.value)}])
 render()
 }
 
+// FUNCIONARIOS
 async function addFuncionario(){
-await supabaseClient.from('funcionarios').insert([{valor:Number(funcionario.value)}])
+await supabase.from('funcionarios').insert([{
+nome:nomeFunc.value,
+cargo:cargoFunc.value,
+valor:Number(salarioFunc.value)
+}])
+render()
+}
+
+// FRIGOBAR
+async function addFrigo(){
+await supabase.from('frigobar').insert([{
+quarto:quarto.value,
+item:itemFrigo.value,
+valor:Number(valorFrigo.value)
+}])
 render()
 }
 
 // ESTOQUE
 async function addProduto(){
-await supabaseClient.from('estoque').insert([{
+await supabase.from('estoque').insert([{
 nome:nomeProduto.value,
 quantidade:Number(qtdProduto.value),
 valor:Number(valorProduto.value)
 }])
-carregarEstoque()
+render()
 }
 
 async function baixar(){
 
-let id=produtoBaixa.value
-let qtd=Number(qtdBaixa.value)
+let {data}=await supabase.from('estoque').select('*').eq('nome',produtoSelect.value).single()
 
-let {data}=await supabaseClient.from('estoque').select('*').eq('id',id).single()
-
-let nova=data.quantidade-qtd
+let nova=data.quantidade-Number(qtdBaixa.value)
 
 if(nova<0){alert("Sem estoque");return}
 
-await supabaseClient.from('estoque').update({quantidade:nova}).eq('id',id)
+await supabase.from('estoque').update({quantidade:nova}).eq('nome',produtoSelect.value)
 
-// lançamento
-await supabaseClient.from('lancamentos').insert([{
-tipo:"custo",
-descricao:data.nome,
-valor:data.valor*qtd
-}])
-
-carregarEstoque()
+render()
 }
 
-// CARREGAR ESTOQUE
-async function carregarEstoque(){
-
-let {data}=await supabaseClient.from('estoque').select('*')
-
-produtoBaixa.innerHTML=data.map(p=>`
-<option value="${p.id}">${p.nome} (${p.quantidade})</option>
-`).join("")
-
-listaEstoque.innerHTML=data.map(p=>`
-<div class="card">
-${p.nome} - Qtd:${p.quantidade} - R$${p.valor}
-</div>
-`).join("")
-}
-
-// DASH
+// RENDER
 async function render(){
 
-let {data:despesas}=await supabaseClient.from('despesas').select('*')
-let {data:func}=await supabaseClient.from('funcionarios').select('*')
-let {data:lanc}=await supabaseClient.from('lancamentos').select('*')
+let {data:despesas}=await supabase.from('despesas').select('*')
+let {data:func}=await supabase.from('funcionarios').select('*')
+let {data:frigo}=await supabase.from('frigobar').select('*')
+let {data:estoque}=await supabase.from('estoque').select('*')
 
 despesas=despesas||[]
 func=func||[]
-lanc=lanc||[]
+frigo=frigo||[]
+estoque=estoque||[]
 
-let fixas=despesas.filter(d=>d.tipo==="fixa").reduce((a,b)=>a+Number(b.valor),0)
-let vars=despesas.filter(d=>d.tipo==="variavel").reduce((a,b)=>a+Number(b.valor),0)
-let funcionarios=func.reduce((a,b)=>a+Number(b.valor),0)
-let custos=lanc.reduce((a,b)=>a+Number(b.valor),0)
+let receita=frigo.reduce((a,b)=>a+b.valor,0)
+let custos=despesas.reduce((a,b)=>a+b.valor,0)+func.reduce((a,b)=>a+b.valor,0)
 
-let total=fixas+vars+funcionarios+custos
-let receita=0
-let lucro=receita-total
+let lucro=receita-custos
+let margem=receita>0?((lucro/receita)*100).toFixed(1):0
 
 cards.innerHTML=`
-<div class="card">Custos: ${total}</div>
+<div class="card">Receita: ${receita}</div>
+<div class="card">Custos: ${custos}</div>
 <div class="card">Lucro: ${lucro}</div>
+<div class="card">Margem: ${margem}%</div>
 `
 
-carregarEstoque()
-}
+produtoSelect.innerHTML=estoque.map(p=>`<option>${p.nome}</option>`).join("")
 
-// PDF
-function gerarPDF(){
-const { jsPDF } = window.jspdf;
-let doc=new jsPDF();
-doc.text("Relatório Contábil",20,20)
-doc.text(cards.innerText,20,40)
-doc.save("relatorio.pdf")
+listaEstoque.innerHTML=estoque.map(p=>`
+<div class="card">${p.nome} | Qtd:${p.quantidade}</div>
+`).join("")
+
+listaFrigo.innerHTML=frigo.map(f=>`
+<div class="card">${f.quarto} - ${f.item} - R$${f.valor}</div>
+`).join("")
 }
 
 </script>
