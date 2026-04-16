@@ -2,6 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pousada Vale do Café • Sistema</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display&display=swap" rel="stylesheet">
@@ -12,74 +13,23 @@
 
 <style>
 body{margin:0;font-family:'Playfair Display',serif;background:#1a120d;color:#f5e6d3}
-
-/* LOGIN */
 .login-screen{
-height:100vh;
-display:flex;
-align-items:center;
-justify-content:center;
+height:100vh;display:flex;align-items:center;justify-content:center;
 background:linear-gradient(rgba(20,10,5,0.85),rgba(20,10,5,0.85)),
 url("https://images.unsplash.com/photo-1600585154340-be6161a56a0c") center/cover;
 }
-
 .login-box{
 background:rgba(44,27,18,0.95);
-padding:45px;
-border-radius:16px;
-width:340px;
-text-align:center;
+padding:45px;border-radius:16px;width:340px;text-align:center;
 }
-
-.login-box h1{
-font-family:'Great Vibes';
-font-size:38px;
-color:#d4a373;
-}
-
-input{
-width:100%;
-padding:12px;
-margin:8px 0;
-border-radius:10px;
-border:none;
-}
-
-button{
-width:100%;
-padding:12px;
-margin-top:10px;
-background:#a47148;
-border:none;
-border-radius:10px;
-color:white;
-cursor:pointer;
-}
-
-/* APP */
+.login-box h1{font-family:'Great Vibes';font-size:38px;color:#d4a373}
+input,select{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none}
+button{width:100%;padding:10px;background:#a47148;border:none;border-radius:8px;color:white;margin-top:5px}
 .app{display:none}
-.sidebar{
-width:240px;
-background:#2a1a12;
-height:100vh;
-position:fixed;
-padding:20px;
-}
-.main{
-margin-left:260px;
-padding:20px;
-}
-.card{
-background:#362419;
-padding:15px;
-border-radius:12px;
-margin-bottom:10px;
-}
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:10px;
-}
+.sidebar{width:240px;background:#2a1a12;height:100vh;position:fixed;padding:20px}
+.main{margin-left:260px;padding:20px}
+.card{background:#362419;padding:15px;border-radius:12px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px}
 </style>
 </head>
 
@@ -89,8 +39,8 @@ gap:10px;
 <div id="loginScreen" class="login-screen">
 <div class="login-box">
 <h1>Pousada Vale do Café</h1>
-<input id="user">
-<input id="pass" type="password">
+<input id="user" placeholder="Usuário">
+<input id="pass" type="password" placeholder="Senha">
 <button onclick="login()">Entrar</button>
 </div>
 </div>
@@ -120,34 +70,49 @@ gap:10px;
 
 <div class="card">
 <h3>Despesas Fixas</h3>
+<select id="fixaCategoria">
+<option>Energia</option>
+<option>Internet</option>
+<option>Salários</option>
+<option>Contabilidade</option>
+<option>Impostos</option>
+</select>
 <input id="fixaDesc" placeholder="Descrição">
 <input id="fixaValor" placeholder="Valor">
+<input type="date" id="fixaData">
 <button onclick="addFixa()">Salvar</button>
 </div>
 
 <div class="card">
 <h3>Despesas Variáveis</h3>
+<select id="varCategoria">
+<option>Lavanderia</option>
+<option>Limpeza</option>
+<option>Café da manhã</option>
+<option>Manutenção</option>
+<option>Reposição</option>
+</select>
 <input id="varDesc" placeholder="Descrição">
 <input id="varValor" placeholder="Valor">
+<input type="date" id="varData">
 <button onclick="addVar()">Salvar</button>
 </div>
 
 <div class="card">
 <h3>Investimentos</h3>
-<input id="descInv">
-<input id="valorInv">
+<input id="descInv" placeholder="Descrição">
+<input id="valorInv" placeholder="Valor">
 <button onclick="addInvestimento()">Salvar</button>
 </div>
 
 </div>
-
 </div>
 
 <!-- COMPRAS -->
 <div id="compras" style="display:none">
 <div class="card">
-<input id="compraDesc">
-<input id="compraValor">
+<input id="compraDesc" placeholder="Produto">
+<input id="compraValor" placeholder="Valor">
 <button onclick="addCompra()">Salvar</button>
 <button onclick="notaCompra()">Nota PDF</button>
 </div>
@@ -156,9 +121,9 @@ gap:10px;
 <!-- FUNCIONARIOS -->
 <div id="funcionarios" style="display:none">
 <div class="card">
-<input id="nomeFunc">
-<input id="funcaoFunc">
-<input id="valorFunc">
+<input id="nomeFunc" placeholder="Nome">
+<input id="funcaoFunc" placeholder="Função">
+<input id="valorFunc" placeholder="Valor">
 <button onclick="addFuncionario()">Salvar</button>
 <button onclick="holerite()">Holerite PDF</button>
 </div>
@@ -167,15 +132,15 @@ gap:10px;
 <!-- QUARTOS -->
 <div id="quartos" style="display:none">
 <div class="card">
-<input id="numeroQuarto">
-<input id="nomeQuarto">
+<input id="numeroQuarto" placeholder="Número">
+<input id="nomeQuarto" placeholder="Nome">
 <button onclick="addQuarto()">Cadastrar</button>
 </div>
 
 <div class="card">
-<input id="qFrigobar">
-<input id="itemFrigo">
-<input id="valorFrigo">
+<input id="qFrigobar" placeholder="Quarto">
+<input id="itemFrigo" placeholder="Item">
+<input id="valorFrigo" placeholder="Valor">
 <button onclick="addFrigo()">Adicionar</button>
 </div>
 </div>
@@ -185,6 +150,7 @@ gap:10px;
 
 <script>
 
+// SUPABASE
 const supabaseClient = supabase.createClient(
 "https://kvlpqffwschikabkupkd.supabase.co",
 "sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
@@ -214,12 +180,16 @@ document.getElementById(v).style.display="block"
 
 // INSERTS
 async function addFixa(){
-await supabaseClient.from('despesas').insert([{tipo:"fixa",descricao:fixaDesc.value,valor:fixaValor.value}])
+await supabaseClient.from('despesas').insert([{
+tipo:"fixa",categoria:fixaCategoria.value,descricao:fixaDesc.value,valor:fixaValor.value,data:fixaData.value
+}])
 render()
 }
 
 async function addVar(){
-await supabaseClient.from('despesas').insert([{tipo:"variavel",descricao:varDesc.value,valor:varValor.value}])
+await supabaseClient.from('despesas').insert([{
+tipo:"variavel",categoria:varCategoria.value,descricao:varDesc.value,valor:varValor.value,data:varData.value
+}])
 render()
 }
 
@@ -248,7 +218,7 @@ await supabaseClient.from('frigobar').insert([{quarto:qFrigobar.value,item:itemF
 render()
 }
 
-// DASH
+// DASHBOARD
 let chart;
 
 async function render(){
@@ -264,20 +234,23 @@ frigo=frigo||[]
 let fixas=despesas.filter(d=>d.tipo==="fixa")
 let variaveis=despesas.filter(d=>d.tipo==="variavel")
 
-let totalFixa=fixas.reduce((a,b)=>a+Number(b.valor),0)
-let totalVar=variaveis.reduce((a,b)=>a+Number(b.valor),0)
-let totalInvest=investimentos.reduce((a,b)=>a+Number(b.valor),0)
-let totalFrigo=frigo.reduce((a,b)=>a+Number(b.valor),0)
+let totalFixa=fixas.reduce((a,b)=>a+Number(b.valor||0),0)
+let totalVar=variaveis.reduce((a,b)=>a+Number(b.valor||0),0)
+let totalInvest=investimentos.reduce((a,b)=>a+Number(b.valor||0),0)
+let totalFrigo=frigo.reduce((a,b)=>a+Number(b.valor||0),0)
 
 let receita=totalFrigo
-let lucro=receita-(totalFixa+totalVar+totalInvest)
+let custoTotal=totalFixa+totalVar+totalInvest
+let lucro=receita-custoTotal
+let margem=receita>0?((lucro/receita)*100).toFixed(1):0
 
 dash.innerHTML=`
 Receita: R$ ${receita}<br>
 Fixas: R$ ${totalFixa}<br>
 Variáveis: R$ ${totalVar}<br>
 Investimentos: R$ ${totalInvest}<br>
-Lucro: R$ ${lucro}
+Lucro: R$ ${lucro}<br>
+Margem: ${margem}%
 `
 
 if(chart) chart.destroy()
@@ -301,7 +274,6 @@ doc.text(dash.innerText,20,40)
 doc.save("relatorio.pdf")
 }
 
-// NOTA COMPRA
 function notaCompra(){
 const { jsPDF } = window.jspdf;
 let doc=new jsPDF();
@@ -311,7 +283,6 @@ doc.text("Valor: R$ "+compraValor.value,20,50)
 doc.save("nota_compra.pdf")
 }
 
-// HOLERITE
 function holerite(){
 const { jsPDF } = window.jspdf;
 let doc=new jsPDF();
