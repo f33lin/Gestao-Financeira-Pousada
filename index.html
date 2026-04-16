@@ -5,19 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pousada Vale do Café</title>
 
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <style>
 body{margin:0;font-family:Arial;background:#1a120d;color:#fff}
 
-.login, .app{display:flex;align-items:center;justify-content:center;height:100vh}
-.app{display:none;flex-direction:column;padding:10px}
+/* LOGIN */
+.login{
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#1a120d;
+}
 
-.box{background:#2a1a12;padding:20px;border-radius:10px;width:300px;text-align:center}
+.box{
+background:#2a1a12;
+padding:25px;
+border-radius:10px;
+width:300px;
+text-align:center;
+}
 
-input,select{width:100%;padding:8px;margin:5px 0;border-radius:6px;border:none}
-button{padding:10px;margin-top:5px;background:#a47148;border:none;color:white;width:100%}
+/* APP */
+.app{display:none}
+.sidebar{
+position:fixed;
+width:200px;
+height:100vh;
+background:#2a1a12;
+padding:10px;
+}
+.main{
+margin-left:210px;
+padding:10px;
+}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.card{background:#362419;padding:10px;border-radius:8px}
+.card{
+background:#362419;
+padding:10px;
+margin:5px;
+border-radius:8px;
+}
+
+button{
+padding:8px;
+background:#a47148;
+border:none;
+color:white;
+margin:3px 0;
+width:100%;
+}
+
+input,select{
+width:100%;
+padding:8px;
+margin:3px 0;
+border-radius:6px;
+border:none;
+}
 </style>
 </head>
 
@@ -36,110 +83,162 @@ button{padding:10px;margin-top:5px;background:#a47148;border:none;color:white;wi
 <!-- APP -->
 <div id="app" class="app">
 
-<h2>Dashboard</h2>
+<div class="sidebar">
+<button onclick="view('dashboard')">Dashboard</button>
+<button onclick="view('financeiro')">Financeiro</button>
+<button onclick="view('estoque')">Estoque</button>
+<button onclick="gerarPDF()">Gerar Relatório</button>
+</div>
 
-<div id="dashboard" class="grid"></div>
+<div class="main">
+
+<div id="dashboard">
+
+<h3>Dashboard</h3>
+<div id="cards"></div>
+
+</div>
+
+<div id="financeiro" style="display:none">
 
 <h3>Despesas Fixas</h3>
-<input id="fixa" placeholder="Valor">
-<button onclick="addFixa()">Adicionar</button>
+<input id="fixa">
+<button onclick="add('fixas')">Adicionar</button>
 
 <h3>Despesas Variáveis</h3>
-<input id="var" placeholder="Valor">
-<button onclick="addVar()">Adicionar</button>
-
-<h3>Compras</h3>
-<input id="compra" placeholder="Valor">
-<button onclick="addCompra()">Adicionar</button>
+<input id="var">
+<button onclick="add('variaveis')">Adicionar</button>
 
 <h3>Funcionários</h3>
-<input id="func" placeholder="Salário">
-<button onclick="addFunc()">Adicionar</button>
+<input id="func">
+<button onclick="add('funcionarios')">Adicionar</button>
 
-<h3>Estoque</h3>
-<input id="produto" placeholder="Produto">
-<input id="valorProduto" placeholder="Valor">
+</div>
+
+<div id="estoque" style="display:none">
+
+<h3>Produto</h3>
+<input id="produto">
+<input id="valorProduto">
 <button onclick="addProduto()">Cadastrar</button>
 
-<h3>Consumo Frigobar</h3>
-<select id="quarto"></select>
+<h3>Consumo</h3>
 <select id="produtoSelect"></select>
 <button onclick="consumir()">Consumir</button>
 
 </div>
 
+</div>
+</div>
+
 <script>
 
-// LOGIN
-function login(){
-if(user.value==="pousadavlc" && pass.value==="docafe212"){
-login.style.display="none"
-app.style.display="flex"
-init()
-}
+// SUPABASE (SAFE MODE)
+let supabase=null
+try{
+supabase = window.supabase.createClient(
+"https://kvlpqffwschikabkupkd.supabase.co",
+"sb_publishable_xiubH7aBWRAbhJWbMGRCYA_HF5o9oR9"
+)
+}catch(e){
+console.log("modo offline")
 }
 
-// BANCO LOCAL
+// DB LOCAL (fallback)
 let db={
 fixas:[],
 variaveis:[],
-compras:[],
 funcionarios:[],
 estoque:[],
 consumo:[]
 }
 
-// INICIAR
-function init(){
-for(let i=1;i<=11;i++){
-quarto.innerHTML+=`<option>${i}</option>`
+// LOGIN
+function login(){
+if(user.value==="pousadavlc" && pass.value==="docafe212"){
+login.style.display="none"
+app.style.display="block"
+render()
 }
+}
+
+// ENTER
+document.addEventListener("keydown",e=>{
+if(e.key==="Enter") login()
+})
+
+// VIEW
+function view(v){
+dashboard.style.display="none"
+financeiro.style.display="none"
+estoque.style.display="none"
+document.getElementById(v).style.display="block"
+}
+
+// ADD
+async function add(tipo){
+
+let valor = Number(document.getElementById(tipo==="fixas"?"fixa":tipo==="variaveis"?"var":"func").value)
+
+db[tipo].push(valor)
+
+// tenta salvar no supabase
+if(supabase){
+try{
+await supabase.from(tipo).insert([{valor}])
+}catch(e){console.log("fallback ativo")}
+}
+
 render()
 }
 
-// CADASTROS
-function addFixa(){db.fixas.push(Number(fixa.value));render()}
-function addVar(){db.variaveis.push(Number(var.value));render()}
-function addCompra(){db.compras.push(Number(compra.value));render()}
-function addFunc(){db.funcionarios.push(Number(func.value));render()}
-
+// PRODUTO
 function addProduto(){
-db.estoque.push({nome:produto.value,valor:Number(valorProduto.value)})
-produtoSelect.innerHTML=db.estoque.map(p=>`<option>${p.nome}</option>`).join("")
-render()
+let p={nome:produto.value,valor:Number(valorProduto.value)}
+db.estoque.push(p)
+
+produtoSelect.innerHTML=db.estoque.map(x=>`<option>${x.nome}</option>`).join("")
 }
 
 // CONSUMO
 function consumir(){
 let p=db.estoque.find(x=>x.nome==produtoSelect.value)
-db.consumo.push({quarto:quarto.value,valor:p.valor})
+db.consumo.push(p)
 render()
 }
 
-// DASHBOARD
+// DASH
 function render(){
 
 let receita=db.consumo.reduce((a,b)=>a+b.valor,0)
 
 let fixas=db.fixas.reduce((a,b)=>a+b,0)
 let variaveis=db.variaveis.reduce((a,b)=>a+b,0)
-let compras=db.compras.reduce((a,b)=>a+b,0)
-let funcionarios=db.funcionarios.reduce((a,b)=>a+b,0)
+let func=db.funcionarios.reduce((a,b)=>a+b,0)
 
-let custo=fixas+variaveis+compras+funcionarios
+let custo=fixas+variaveis+func
 let lucro=receita-custo
 
-let media=custo/(db.fixas.length+db.variaveis.length||1)
 let perc=((lucro/receita)*100||0).toFixed(1)
 
-dashboard.innerHTML=`
-<div class="card">Receita<br>${receita}</div>
-<div class="card">Custos<br>${custo}</div>
-<div class="card">Lucro<br>${lucro}</div>
-<div class="card">Média<br>${media.toFixed(2)}</div>
-<div class="card">% Lucro<br>${perc}%</div>
+cards.innerHTML=`
+<div class="card">Receita: ${receita}</div>
+<div class="card">Custos: ${custo}</div>
+<div class="card">Lucro: ${lucro}</div>
+<div class="card">% Lucro: ${perc}%</div>
 `
+}
 
+// PDF
+function gerarPDF(){
+
+const { jsPDF } = window.jspdf;
+let doc=new jsPDF();
+
+doc.text("Relatório Pousada Vale do Café",20,20)
+doc.text(cards.innerText,20,40)
+
+doc.save("relatorio.pdf")
 }
 
 </script>
